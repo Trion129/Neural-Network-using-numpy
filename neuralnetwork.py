@@ -52,13 +52,13 @@ class NeuralNetwork():
       self.weights_3 += weight_3_adjustment
       temp = self.weights_3 - temp
 
-      weight_2_adjustment = dot(layer1.T, temp * self.sigmoid_derivative(self.weights_3))
+      weight_2_adjustment = dot(layer1.T, temp * self.sigmoid_derivative(layer2))
 
       temp = self.weights_2
       self.weights_2 += weight_2_adjustment
       temp = self.weights_2 - temp
 
-      weight_1_adjustment = dot(self.input.T, temp * self.sigmoid_derivative(self.weights_2))
+      weight_1_adjustment = dot(self.input.T, temp * self.sigmoid_derivative(layer1))
       
       self.weights_1 += weight_1_adjustment
 
