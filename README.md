@@ -4,7 +4,7 @@ This allowed me to learn how back propagation works
 
 ##Overview
 
-This neural network learns from truth table of Full Adder and then on giving a value not in dataset it predicts the output based on the weights it learned while training.
+This neural network learns from truth table of Full Adder and then on giving a value it predicts the output based on the weights it learned while training.
 
 ##Dependencies
 
