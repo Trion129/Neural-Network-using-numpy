@@ -1,67 +1,81 @@
 # Teaching a 3 level neural network to work as Full Adder
+
+#import numpy for maths, pandas for reading data from text
 from numpy import random, exp, array, dot
 import pandas as pd
 
+# Neural Network class definition
 class NeuralNetwork():
   def __init__(self, gateInput, gateOutput, ):
+
+    # seed the random generator for easier debugging
     random.seed(1)
-    self.input = gateInput
-    self.output = gateOutput
+
+    # Save all variables in self for future references
+    self.gateInput = gateInput
+    self.gateOutput = gateOutput
     self.input_shape = (1,3)
     self.output_shape = (1,2)
-    self.layer_1_nodes = 10
-    self.layer_2_nodes = 10
-    self.layer_3_nodes = 10
+    self.layer_1_nodes = 5
+    self.layer_2_nodes = 5
+    self.layer_3_nodes = 5
 
+    # Generate weights with value between -1 to 1 so that mean is overall 0
     self.weights_1 = 2 * random.random((self.input_shape[1], self.layer_1_nodes)) - 1
     self.weights_2 = 2 * random.random((self.layer_1_nodes, self.layer_2_nodes)) - 1
     self.weights_3 = 2 * random.random((self.layer_2_nodes, self.layer_3_nodes)) - 1
     self.out_weights = 2 * random.random((self.layer_3_nodes, self.output_shape[1])) - 1
 
+  # Sigmoid function gives a value between 0 and 1
   def sigmoid(self, x):
     return 1 / (1 + exp(-x))
 
+  # Reversed Sigmoid by derivating the value
   def sigmoid_derivative(self, x):
     return x * (1 - x)
 
   def think(self, x):
-    layer1 = dot(x, self.weights_1)
-    layer2 = dot(self.sigmoid(layer1), self.weights_2)
-    layer3 = dot(self.sigmoid(layer2), self.weights_3)
-    output = dot(self.sigmoid(layer3), self.out_weights)
-    return self.sigmoid(output)
+    # Multiply the input with weights and find its sigmoid activation for all layers
+    layer1 = self.sigmoid(dot(x, self.weights_1))
+    layer2 = self.sigmoid(dot(layer1, self.weights_2))
+    layer3 = self.sigmoid(dot(layer2, self.weights_3))
+    output = self.sigmoid(dot(layer3, self.out_weights))
+    return output
 
   def train(self, num_steps):
     for x in range(num_steps):
-      layer1 = dot(self.input, self.weights_1)
-      layer2 = dot(self.sigmoid(layer1), self.weights_2)
-      layer3 = dot(self.sigmoid(layer2), self.weights_3)
-      output = dot(self.sigmoid(layer3), self.out_weights)
+      # Same as code of thinking
+      layer1 = self.sigmoid(dot(self.gateInput, self.weights_1))
+      layer2 = self.sigmoid(dot(layer1, self.weights_2))
+      layer3 = self.sigmoid(dot(layer2, self.weights_3))
+      output = self.sigmoid(dot(layer3, self.out_weights))
 
-      error = self.output - self.sigmoid(output)
+      # What is the error?
+      outputError = self.gateOutput - output
 
-      out_weights_adjustment = dot(layer3.T, error * self.sigmoid_derivative(output))
-
-      temp = self.out_weights
+      # Find delta, i.e. Product of Error and derivative of next layer
+      delta = outputError * self.sigmoid_derivative(output)
+      
+      # Multiply with transpose of last layer
+      # to invert the multiplication we did to get layer 
+      out_weights_adjustment = dot(layer3.T, delta)
+      
+      # Apply the out_weights_adjustment
       self.out_weights += out_weights_adjustment
-      error = self.out_weights - temp
       
-      weight_3_adjustment = dot(layer2.T, error * self.sigmoid_derivative(layer3))
-
-      temp = self.weights_3
+      # Procedure stays same, but the error now is the product of current weight and
+      # Delta in next layer
+      delta = dot(delta, self.out_weights.T) * self.sigmoid_derivative(layer3)
+      weight_3_adjustment = dot(layer2.T, delta)
       self.weights_3 += weight_3_adjustment
-      error = self.weights_3 - temp
 
-      weight_2_adjustment = dot(layer1.T, error * self.sigmoid_derivative(layer2))
-
-      temp = self.weights_2
+      delta = dot(delta, self.weights_3.T) * self.sigmoid_derivative(layer2)
+      weight_2_adjustment = dot(layer1.T, delta)
       self.weights_2 += weight_2_adjustment
-      error = self.weights_2 - temp
 
-      weight_1_adjustment = dot(self.input.T, error * self.sigmoid_derivative(layer1))
-      
+      delta = dot(delta, self.weights_2.T) * self.sigmoid_derivative(layer1)
+      weight_1_adjustment = dot(self.gateInput.T, delta)
       self.weights_1 += weight_1_adjustment
-
 
 if __name__ == '__main__':
   file = pd.read_csv("dataset.txt", delimiter=',')
@@ -73,7 +87,7 @@ if __name__ == '__main__':
 
   neural_network = NeuralNetwork(gateInput, gateOutput)
 
-  neural_network.train(1000)
+  neural_network.train(6000)
 
   # Should be 0 , 1
-  print(neural_network.think([[1,0,0]]))
+  print(neural_network.think([[0,0,1]]))
